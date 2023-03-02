@@ -5,6 +5,11 @@ from plotnine import *
 from scipy.cluster.hierarchy import dendrogram, linkage, set_link_color_palette
 from scipy.stats import gmean, mannwhitneyu, spearmanr
 
+import matplotlib as mpl
+
+cmap = mpl.cm.get_cmap("magma_r")(np.linspace(0,1,30))
+magma_cmap = mpl.colors.ListedColormap(cmap[2:,:-1])
+
 def make_lfcs(ad, raw_layer, norm_layer, cl_level = "leiden", pseudocount_threshold = 0.05, cl_pct = 0.05, 
               padj_threshold = 0.05, log2FC_threshold = 0.5):
     
@@ -65,9 +70,20 @@ def make_lfcs(ad, raw_layer, norm_layer, cl_level = "leiden", pseudocount_thresh
         df = df.append(log2FC_data)
     return df
 
+def write_lfc_spreadsheet(degs, out_name, padj_threshold = 0.05, lfc_threshold = 0.5, sheet_name_col = "cluster"):
+    ## for writing excel spreadsheets of LFCs
+    filtered_degs = degs[(degs["padj"] <= padj_threshold) & (abs(degs["log2FC"]) > 0.5)]
+    with pd.ExcelWriter(out_name) as writer:
+        for cl in np.unique(filtered_degs["cluster"]):
+            cl_degs = filtered_degs[filtered_degs["cluster"] == cl]
+            sheet = np.unique(cl_degs[sheet_name_col]) ## allows the sheet name to give more information (cluster + cell type, for example)
+            assert len(sheet) == 1
+            cl_degs.to_excel(writer, sheet_name = sheet[0].replace("/", " -- "), index = False)
+
 
 def plot_diff_expr(lfc_data, adata, cl_name= "leiden", top_n = 5, figsize=(50, 20), dpi = 100,
                    wspace=0.5, hspace=0.2, nrows=2, color='lightblue', only_up = False):
+    # for generating a bar plot of DEGs for each cluster
     fig = plt.figure(figsize=figsize, dpi = dpi)
     plot_clusters = np.unique(lfc_data["cluster"])
     ncols = int(np.ceil(len(plot_clusters) / nrows))
@@ -97,6 +113,7 @@ def plot_diff_expr(lfc_data, adata, cl_name= "leiden", top_n = 5, figsize=(50, 2
             plt.yticks(locs, labels = genes_both[::-1]["gene"])
 
 def make_dendrogram(genes_to_use, ad, lay = "pearson_theta_1", cluster_level = "leiden", out_name="dendrogram.pdf"):
+    # for plotting dendrogram of GEX over a subset of genes (DEGs)
     dendrogram_input = ad[:, genes_to_use]
     dendrogram_input = pd.DataFrame(
         dendrogram_input.layers[lay], columns = dendrogram_input.var_names, 
@@ -113,20 +130,22 @@ def make_dendrogram(genes_to_use, ad, lay = "pearson_theta_1", cluster_level = "
     plt.savefig(out_name)
     plt.show()
 
-cd4_genes = ["Nkg7", "Ccl5", "Slamf6", "Lef1", "Gzma", "Gzmb", "Id2", "Itgae", "Jaml", "Sell", "Tcf7"]
+cd4_genes = ["Nkg7", "Ccl5", "Slamf6", "Lef1", "Gzma", "Gzmb", "Id2", "Itgae", "Jaml", "Sell", "Tcf7", "Itgb7"]
 def make_corr_df(ad):
     genes = ad.var_names
     spearman_rhos = []
+    # iterate through all genes, calculating Spearman correlation with normalized biotin levels
     for g in genes:
         g_vals = np.array(ad[:, g].layers["pearson_theta_1"]).flatten()
         spearman_rhos.append(spearmanr(ad.obs["normalized biotin"], g_vals))
     df = pd.DataFrame({"gene": genes, "corr": [ c[0] for c in spearman_rhos]})
-    df["interesting gene"] = df.gene.isin(cd4_genes)
+    df["interesting gene"] = df.gene.isin(cd4_genes) # highlight some interesting genes
     df = df.sort_values("corr") 
     df["i"] = [i/10 for i in range(len(genes))]
     return df
 
 def make_corr_plot(df):
+    # for making the plot as shown in them ain figure (4G) and in supplementary figure 3
     return ggplot(df[~df["interesting gene"]], aes(x="i", y="corr")) + geom_point(color = "#696969") + \
 theme_minimal() + geom_point(df[df["interesting gene"]], aes(x="i", y="corr"), color="#8b1c62") + geom_text(
         df[df["interesting gene"]], aes(label="gene"), color="#8b1c62", size=12, nudge_y=0, nudge_x = 130, 
