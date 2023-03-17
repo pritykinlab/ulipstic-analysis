@@ -127,7 +127,7 @@ def make_dendrogram(genes_to_use, ad, lay = "pearson_theta_1", cluster_level = "
     set_link_color_palette(['black'])
     dendrogram(dist_matrix, above_threshold_color='black', leaf_font_size=16, show_contracted=True,
               labels = dendrogram_input.index)
-    plt.savefig(out_name)
+    plt.savefig(out_name, bbox_inches='tight')
     plt.show()
 
 cd4_genes = ["Nkg7", "Ccl5", "Slamf6", "Lef1", "Gzma", "Gzmb", "Id2", "Itgae", "Jaml", "Sell", "Tcf7", "Itgb7"]
@@ -138,7 +138,7 @@ def make_corr_df(ad):
     for g in genes:
         g_vals = np.array(ad[:, g].layers["pearson_theta_1"]).flatten()
         spearman_rhos.append(spearmanr(ad.obs["normalized biotin"], g_vals))
-    df = pd.DataFrame({"gene": genes, "corr": [ c[0] for c in spearman_rhos]})
+    df = pd.DataFrame({"gene": genes, "corr": [ c[0] for c in spearman_rhos], "pval": [ c[1] for c in spearman_rhos]})
     df["interesting gene"] = df.gene.isin(cd4_genes) # highlight some interesting genes
     df = df.sort_values("corr") 
     df["i"] = [i/10 for i in range(len(genes))]
