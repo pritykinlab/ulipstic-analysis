@@ -1,9 +1,8 @@
 # Analysis for the scRNA-seq component of the uLIPSTIC project
 
-Full details in our preprint:
+Full details in our paper:
 
-#### Universal recording of cell-cell contacts in vivo for interaction-based transcriptomics
+#### Universal recording of immune cell interactions in vivo
+Sandra Nakandakari-Higa, Sarah Walker, Maria C. C. Canesso, Verena van der Heide, Aleksey Chudnovskiy, Johanne T. Jacobsen, Roham Parsa, Jana Bilanovic, S. Martina Parigi, Karol Fiedorczuk, Elaine Fuchs, Angelina M. Bilate, Giulia Pasqual, Daniel Mucida, Alice O. Kamphorst, Yuri Pritykin, Gabriel D. Victora
 
-Sandra Nakandakari-Higa, Maria Cecilia Campos Canesso, Sarah Walker, Aleksey Chudnovskiy, Johanne T Jacobsen, S. Martina Parigi, Karol Fiedorczuk, Elaine Fuchs, Angelina M Bilate, Giulia Pasqual, Daniel Mucida, Yuri Pritykin, Gabriel D Victora
-
-*bioRxiv* 2023.03.16.533003; doi: https://doi.org/10.1101/2023.03.16.533003
+*Nature* 2024; [doi](https://doi.org/10.1038/s41586-024-07134-4)
